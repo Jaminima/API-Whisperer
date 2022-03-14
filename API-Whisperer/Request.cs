@@ -38,9 +38,10 @@ namespace API_Whisperer
                     }
 
                     var response = await httpClient.SendAsync(request);
+                    string body = "";
                     int retry_delay_maginification = 1;
 
-                    while (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    while (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests || body.Substring(body.IndexOf("error") + 2, 3) == "429")
                     {
                         if (retry_delay_maginification < 120)
                         {
@@ -50,11 +51,10 @@ namespace API_Whisperer
 
                         Thread.Sleep((rnd.Next(800, 1200) * retry_delay_maginification));
                         response = await httpClient.SendAsync(request);
+                        body = await response.Content.ReadAsStringAsync();
 
                         retry_delay_maginification += retry_delay_maginification;
                     }
-
-                    string body = await response.Content.ReadAsStringAsync();
 
                     Response res = new Response(this, ((int)response.StatusCode), response.IsSuccessStatusCode, body);
 
