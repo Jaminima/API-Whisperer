@@ -10,7 +10,7 @@ namespace API_Whisperer
         #region Fields
 
         private static Random rnd = new Random();
-
+        public static string urlStart = "https://api-eu1.compleat.online/";
         public object content = null;
         public Dictionary<string, string> headers = new Dictionary<string, string>();
         public string method = "GET", url = "https://www.google.com";
@@ -19,11 +19,11 @@ namespace API_Whisperer
 
         #region Methods
 
-        public async Task<Response> Execute(Authentication auth = null)
+        public async Task<Response> Execute(Authentication auth = null, bool throwError = true)
         {
             using (var httpClient = new HttpClient())
             {
-                using (var request = new HttpRequestMessage(new HttpMethod(method), url))
+                using (var request = new HttpRequestMessage(new HttpMethod(method), urlStart + url))
                 {
                     var _headers = auth == null ? headers : headers.Union(auth.headers);
 
@@ -38,10 +38,12 @@ namespace API_Whisperer
                     }
 
                     var response = await httpClient.SendAsync(request);
-                    string body = "";
+                    string body = await response.Content.ReadAsStringAsync();
                     int retry_delay_maginification = 1;
 
-                    while (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests || body.Substring(body.IndexOf("error") + 2, 3) == "429")
+                    string error = "";
+
+                    while (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests || error == "429")
                     {
                         if (retry_delay_maginification < 120)
                         {
@@ -54,11 +56,19 @@ namespace API_Whisperer
                         body = await response.Content.ReadAsStringAsync();
 
                         retry_delay_maginification += retry_delay_maginification;
+
+                        int error_start = body.IndexOf("error");
+                        error = error_start != -1 ? body.Substring(error_start + 2, 3) : "";
                     }
 
-                    Response res = new Response(this, ((int)response.StatusCode), response.IsSuccessStatusCode, body);
-
-                    return res;
+                    if (throwError && !response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"Request {JsonSerializer.SerializeToElement(this).GetRawText()}\nThrew An Exception: {((int)response.StatusCode)}\n{body}!");
+                    }
+                    else
+                    {
+                        return new Response(this, ((int)response.StatusCode), response.IsSuccessStatusCode, body);
+                    }
                 }
             }
         }
