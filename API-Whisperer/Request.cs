@@ -10,16 +10,26 @@ namespace API_Whisperer
         #region Fields
 
         private static Random rnd = new Random();
-        public static string urlStart = "https://api-eu1.compleat.online/";
-        public object content = null;
-        public Dictionary<string, string> headers = new Dictionary<string, string>();
-        public string method = "GET", url = "https://www.google.com";
 
         #endregion Fields
 
         #region Methods
 
-        public async Task<Response> Execute(Authentication auth = null, bool throwError = true)
+        private string FindStatusCodeInBody(string body)
+        {
+            string lookFor = "statusCode";
+            int error_start = body.IndexOf(lookFor) + lookFor.Length;
+            return error_start != -1 ? body.Substring(error_start + 3, 3) : "";
+        }
+
+        #endregion Methods
+
+        public static string urlStart = "https://api-eu1.compleat.online/";
+        public object content = null;
+        public Dictionary<string, string> headers = new Dictionary<string, string>();
+        public string method = "GET", url = "https://www.google.com";
+
+        public async Task<Response> Execute(Authentication auth = null, bool throwError = true, int retry_delay_maginification = 1)
         {
             using (var httpClient = new HttpClient())
             {
@@ -39,26 +49,17 @@ namespace API_Whisperer
 
                     var response = await httpClient.SendAsync(request);
                     string body = await response.Content.ReadAsStringAsync();
-                    int retry_delay_maginification = 1;
 
-                    string error = "";
-
-                    while (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests || error == "429")
+                    while (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests || FindStatusCodeInBody(body) == "429")
                     {
-                        if (retry_delay_maginification < 120)
+                        if (retry_delay_maginification > 120)
                         {
-                            Console.WriteLine($"Request {JsonSerializer.SerializeToElement(this).GetRawText()}\nCouldnt complete request!");
+                            Console.WriteLine($"Request {this.url}\nCouldnt complete request!");
                             break;
                         }
 
                         Thread.Sleep((rnd.Next(800, 1200) * retry_delay_maginification));
-                        response = await httpClient.SendAsync(request);
-                        body = await response.Content.ReadAsStringAsync();
-
-                        retry_delay_maginification += retry_delay_maginification;
-
-                        int error_start = body.IndexOf("error");
-                        error = error_start != -1 ? body.Substring(error_start + 2, 3) : "";
+                        return await Execute(auth, throwError, retry_delay_maginification + retry_delay_maginification);
                     }
 
                     if (throwError && !response.IsSuccessStatusCode)
@@ -72,7 +73,5 @@ namespace API_Whisperer
                 }
             }
         }
-
-        #endregion Methods
     }
 }
