@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace API_Whisperer
 
         public string body;
         public JsonElement? bodyAsJson;
+        public HttpResponseHeaders headers;
         public bool isSuccess;
         public Request request;
         public int statusCode;
@@ -20,12 +22,13 @@ namespace API_Whisperer
 
         #region Constructors
 
-        public Response(Request request, int statusCode, bool isSuccess, string body)
+        public Response(Request request, int statusCode, bool isSuccess, string body, HttpResponseHeaders headers)
         {
             this.request = request;
             this.body = body;
             this.isSuccess = isSuccess;
             this.statusCode = statusCode;
+            this.headers = headers;
 
             try
             {

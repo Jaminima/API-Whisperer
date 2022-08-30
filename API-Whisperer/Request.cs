@@ -18,8 +18,9 @@ namespace API_Whisperer
         private string FindStatusCodeInBody(string body)
         {
             string lookFor = "statusCode";
-            int error_start = body.IndexOf(lookFor) + lookFor.Length;
-            return error_start != -1 ? body.Substring(error_start + 3, 3) : "";
+            int error_idx = body.IndexOf(lookFor);
+            int error_start = error_idx + lookFor.Length;
+            return error_idx != -1 ? body.Substring(error_start + 3, 3) : "";
         }
 
         #endregion Methods
@@ -29,7 +30,7 @@ namespace API_Whisperer
         public Dictionary<string, string> headers = new Dictionary<string, string>();
         public string method = "GET", url = "https://www.google.com";
 
-        public async Task<Response> Execute(Authentication auth = null, bool throwError = true, int retry_delay_maginification = 1)
+        public async Task<Response> Execute(Authentication auth = null, bool throwError = false, int retry_delay_maginification = 1)
         {
             using (var httpClient = new HttpClient())
             {
@@ -68,7 +69,7 @@ namespace API_Whisperer
                     }
                     else
                     {
-                        return new Response(this, ((int)response.StatusCode), response.IsSuccessStatusCode, body);
+                        return new Response(this, ((int)response.StatusCode), response.IsSuccessStatusCode, body, response.Headers);
                     }
                 }
             }
