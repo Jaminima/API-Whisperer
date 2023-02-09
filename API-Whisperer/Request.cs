@@ -32,6 +32,12 @@ namespace API_Whisperer
 
         public async Task<Response> Execute(Authentication auth = null, bool throwError = false, int retry_delay_maginification = 1)
         {
+            if (auth!=null)
+            {
+                RateLimiting.HoldForRequestGrant(auth);
+
+            }
+
             using (var httpClient = new HttpClient())
             {
                 using (var request = new HttpRequestMessage(new HttpMethod(method), urlStart + url))
