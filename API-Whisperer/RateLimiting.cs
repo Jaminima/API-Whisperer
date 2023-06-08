@@ -38,7 +38,7 @@ namespace API_Whisperer
         {
             while (TooManyRequests(cookie))
             {
-                Console.WriteLine("IC Requests Held @ " + DateTime.Now.ToString());
+                //Console.WriteLine("IC Requests Held @ " + DateTime.Now.ToString());
                 Thread.Sleep(secWaitOnTooMany * 1000);
             }
             cookie.requestTimes.TryAdd(DateTime.Now, "");
