@@ -1,7 +1,5 @@
-﻿using System.Text.Json;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace API_Whisperer
 {
@@ -32,10 +30,9 @@ namespace API_Whisperer
 
         public async Task<Response> Execute(Authentication auth = null, bool throwError = false, int retry_delay_maginification = 1)
         {
-            if (auth!=null)
+            if (auth != null)
             {
                 RateLimiting.HoldForRequestGrant(auth);
-
             }
 
             using (var httpClient = new HttpClient())
