@@ -28,7 +28,7 @@ namespace API_Whisperer
         public Dictionary<string, string> headers = new Dictionary<string, string>();
         public string method = "GET", url = "https://www.google.com";
 
-        public async Task<Response> Execute(Authentication auth = null, bool throwError = false, int retry_delay_maginification = 1)
+        public async Task<Response> Execute(Authentication auth = null, bool throwError = false, int retry_delay_maginification = 1, bool ignoreUrlStart = false)
         {
             if (auth != null)
             {
@@ -37,7 +37,7 @@ namespace API_Whisperer
 
             using (var httpClient = new HttpClient())
             {
-                using (var request = new HttpRequestMessage(new HttpMethod(method), urlStart + url))
+                using (var request = new HttpRequestMessage(new HttpMethod(method), ignoreUrlStart ? url : urlStart + url))
                 {
                     var _headers = auth == null ? headers : headers.Union(auth.headers);
 
